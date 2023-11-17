@@ -1,10 +1,12 @@
 "use client";
 import { Button } from "@mui/material";
-import Link from "next/link";
-import { useState } from "react";
-const GRID_SIZE = 8;
+import { useEffect, useState } from "react";
 
+type AudioState = HTMLAudioElement | null;
+
+const GRID_SIZE = 8;
 //crear array de 8 filas y 8 columnas que tengan valor 0
+
 const MATRIX = Array.from({ length: GRID_SIZE }, () =>
   Array.from({ length: 8 }, () => 0 as string | number)
 );
@@ -20,23 +22,6 @@ const Matrix = [
   [0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
-const handleOnClickConfetti = () => {
-  console.log("Confetti==>", handleOnClickConfetti);
-
-  confetti({
-    particleCount: 100,
-    startVelocity: 30,
-    spread: 360,
-    origin: {
-      x: 0,
-      // since they fall down, start a bit higher than random
-      y: 0.5,
-    },
-  });
-};
-
-const boo = new Audio("/boo.mp3");
-boo.volume = 0.2;
 // array de posiciones de coincidencias
 const MATCHES = [
   [-1, -1],
@@ -76,6 +61,19 @@ for (let rowIndex = 0; rowIndex < MATRIX.length; rowIndex++) {
 }
 
 export default function Home() {
+  const [audio, setAudio] = useState<AudioState>(null);
+  useEffect(() => {
+    const newAudio = new Audio("boo.mp3");
+    setAudio(newAudio);
+    return () => {
+      if (newAudio) {
+        newAudio.pause();
+        newAudio.src = "";
+        newAudio.load();
+      }
+    };
+  }, []);
+
   const [clicked, setClicked] = useState<String[]>([]); //para saber en donde estoy pulsando el click
   const [status, setStatus] = useState<"playing" | "win" | "lost">("playing"); //estados para saber si estoy jugando, gané o perdí
 
@@ -85,14 +83,14 @@ export default function Home() {
     //Si gané
     if (clicked.length + 1 === GRID_SIZE ** 2 - GRID_SIZE) {
       setStatus("win");
-
-      handleOnClickConfetti();
     }
     //Si perdí
     else if (MATRIX[rowIndex][cellIndex] === "B") {
       setStatus("lost");
 
-      boo.play();
+      if (audio instanceof HTMLAudioElement) {
+        audio.play();
+      }
     }
   }
 
@@ -161,16 +159,4 @@ export default function Home() {
       </main>
     </>
   );
-}
-function confetti(arg0: {
-  particleCount: number;
-  startVelocity: number;
-  spread: number;
-  origin: {
-    x: number;
-    // since they fall down, start a bit higher than random
-    y: number;
-  };
-}) {
-  throw new Error("Function not implemented.");
 }
