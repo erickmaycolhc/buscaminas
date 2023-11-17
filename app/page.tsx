@@ -1,95 +1,176 @@
-import Image from 'next/image'
-import styles from './page.module.css'
+"use client";
+import { Button } from "@mui/material";
+import Link from "next/link";
+import { useState } from "react";
+const GRID_SIZE = 8;
+
+//crear array de 8 filas y 8 columnas que tengan valor 0
+const MATRIX = Array.from({ length: GRID_SIZE }, () =>
+  Array.from({ length: 8 }, () => 0 as string | number)
+);
+
+const Matrix = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const handleOnClickConfetti = () => {
+  console.log("Confetti==>", handleOnClickConfetti);
+
+  confetti({
+    particleCount: 100,
+    startVelocity: 30,
+    spread: 360,
+    origin: {
+      x: 0,
+      // since they fall down, start a bit higher than random
+      y: 0.5,
+    },
+  });
+};
+
+const boo = new Audio("/boo.mp3");
+boo.volume = 0.2;
+// array de posiciones de coincidencias
+const MATCHES = [
+  [-1, -1],
+  [-1, 0],
+  [-1, 1],
+  [0, -1],
+  [0, 1],
+  [1, -1],
+  [1, 0],
+  [1, 1],
+];
+
+//aparecer Bombas 'B' en posiciones random
+for (let count = GRID_SIZE; count > 0; count--) {
+  const rowRandom = Math.floor(Math.random() * GRID_SIZE); //row = fila
+  const celRandom = Math.floor(Math.random() * GRID_SIZE); // cell = columna
+
+  MATRIX[rowRandom][celRandom] = "B";
+}
+
+//recorremos los indices de row y de cell
+for (let rowIndex = 0; rowIndex < MATRIX.length; rowIndex++) {
+  for (let cellIndex = 0; cellIndex < MATRIX[rowIndex].length; cellIndex++) {
+    if (MATRIX[rowIndex][cellIndex] === "B") continue;
+    let bombCount = 0;
+
+    //si hay indices en la matriz que aumente en el contador
+    for (const match of MATCHES) {
+      if (MATRIX[rowIndex + match[0]]?.[cellIndex + match[1]] === "B") {
+        bombCount++;
+      }
+    }
+
+    //seteamos como valor el bombCount predeterminado
+    MATRIX[rowIndex][cellIndex] = bombCount;
+  }
+}
 
 export default function Home() {
+  const [clicked, setClicked] = useState<String[]>([]); //para saber en donde estoy pulsando el click
+  const [status, setStatus] = useState<"playing" | "win" | "lost">("playing"); //estados para saber si estoy jugando, gané o perdí
+
+  //función para encontrar el id del clicked
+  function handleClick(rowIndex: number, cellIndex: number) {
+    setClicked((clicked) => clicked.concat(`${rowIndex}-${cellIndex}`));
+    //Si gané
+    if (clicked.length + 1 === GRID_SIZE ** 2 - GRID_SIZE) {
+      setStatus("win");
+
+      handleOnClickConfetti();
+    }
+    //Si perdí
+    else if (MATRIX[rowIndex][cellIndex] === "B") {
+      setStatus("lost");
+
+      boo.play();
+    }
+  }
+
   return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <>
+      <main className="container">
+        <header className="header">booscaminas</header>
+        <section className="centrar-completo">
+          <section className="section">
+            {MATRIX.map((row, rowIndex) => (
+              <article key={String(rowIndex)} className="all-article">
+                {row.map((cell, cellIndex) => (
+                  <div
+                    key={`${rowIndex}-${cellIndex}`}
+                    className={`all-div ${
+                      clicked.includes(`${rowIndex}-${cellIndex}`)
+                        ? "bg"
+                        : "transparent"
+                    }`}
+                  >
+                    {clicked.includes(`${rowIndex}-${cellIndex}`) ? (
+                      <span>
+                        {cell === "B" ? "🎃" : cell === 0 ? null : cell}
+                      </span>
+                    ) : (
+                      <button
+                        className="button"
+                        type="button"
+                        onClick={() =>
+                          status === "playing" &&
+                          handleClick(rowIndex, cellIndex)
+                        }
+                      ></button>
+                    )}
+                  </div>
+                ))}
+              </article>
+            ))}
+          </section>
+          {status === "lost" && (
+            <div className="center">
+              <p className="block">You lost😥</p>
+              <Button
+                variant="contained"
+                onClick={() => window.location.reload()}
+              >
+                {/*para comenzar a jugar de nuevo*/}
+                Play again
+              </Button>
+            </div>
+          )}
+          {status === "win" && (
+            <div className="center">
+              <p>You win</p>
+              <Button onClick={() => window.location.reload()}>
+                {/*para comenzar a jugar de nuevo*/}
+                Play again
+              </Button>
+            </div>
+          )}
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+          <footer className="finally">
+            {new Date().getFullYear()}@ booscaminas
+          </footer>
+        </section>
+      </main>
+    </>
+  );
+}
+function confetti(arg0: {
+  particleCount: number;
+  startVelocity: number;
+  spread: number;
+  origin: {
+    x: number;
+    // since they fall down, start a bit higher than random
+    y: number;
+  };
+}) {
+  throw new Error("Function not implemented.");
 }
