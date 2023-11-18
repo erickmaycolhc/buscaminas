@@ -103,4 +103,7 @@
   .header {
     font-size: 2rem;
   }
+  .finally {
+    padding-top: 5rem;
+  }
 }
