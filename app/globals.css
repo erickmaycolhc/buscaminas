@@ -87,18 +87,18 @@
   }
 }
 
-/* @media screen and (max-width: 540px) {
+@media screen and (max-width: 540px) {
   .all-div {
     height: 40px;
     width: 40px;
     font-size: 1rem;
   }
-} */
+}
 
 @media screen and (max-width: 450px) {
   .all-div {
-    height: 30px;
-    width: 30px;
+    height: 37px;
+    width: 37px;
   }
   .header {
     font-size: 2rem;
