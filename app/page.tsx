@@ -62,6 +62,7 @@ for (let rowIndex = 0; rowIndex < MATRIX.length; rowIndex++) {
 
 export default function Home() {
   const [audio, setAudio] = useState<AudioState>(null);
+
   useEffect(() => {
     const newAudio = new Audio("boo.mp3");
     setAudio(newAudio);
